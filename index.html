@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoDoc-UFS Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+              mono: ["JetBrains Mono", "Fira Code", "ui-monospace", "monospace"],
+            },
+            colors: {
+              accent: {
+                500: "#06b6d4",
+                600: "#0891b2",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+  </head>
+  <body class="h-full bg-slate-900 text-slate-100 antialiased">
+    <div class="flex h-full">
+      <aside class="w-72 border-r border-slate-700/80 bg-slate-900/90 p-6">
+        <div class="mb-8 flex items-center gap-3">
+          <div class="rounded-lg bg-accent-500/20 p-2 text-accent-500">
+            <i data-lucide="file-cog-2" class="h-5 w-5"></i>
+          </div>
+          <div>
+            <h1 class="text-lg font-semibold tracking-tight">AutoDoc-UFS</h1>
+            <p class="text-xs text-slate-400">Samsung Semiconductor</p>
+          </div>
+        </div>
+        <nav class="space-y-2 text-sm">
+          <a class="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-slate-100" href="#"><i data-lucide="layout-dashboard" class="h-4 w-4"></i> Dashboard</a>
+          <a class="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-400 transition hover:bg-slate-800 hover:text-slate-100" href="#"><i data-lucide="history" class="h-4 w-4"></i> Generation History</a>
+          <a class="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-400 transition hover:bg-slate-800 hover:text-slate-100" href="#"><i data-lucide="settings" class="h-4 w-4"></i> Settings</a>
+        </nav>
+      </aside>
+
+      <main class="flex-1 overflow-auto p-8">
+        <div class="mx-auto max-w-7xl space-y-6">
+          <section class="rounded-2xl border border-slate-700 bg-slate-800/70 p-6 shadow-xl shadow-black/10">
+            <div class="mb-6 flex items-center justify-between">
+              <div>
+                <h2 class="text-xl font-semibold">Documentation Configuration</h2>
+                <p class="text-sm text-slate-400">Configure source, framework path, and compliance targets.</p>
+              </div>
+              <span id="frameworkBadge" class="rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-400">ASPICE active</span>
+            </div>
+
+            <div class="grid gap-5 lg:grid-cols-3">
+              <div class="lg:col-span-3">
+                <label class="mb-2 block text-sm font-medium text-slate-300">Step 1 · UFS Firmware Source Repository/Path</label>
+                <div class="group rounded-xl border border-dashed border-slate-600 bg-slate-900/60 p-4 transition hover:border-cyan-500/60">
+                  <div class="mb-3 flex items-center gap-2 text-slate-400">
+                    <i data-lucide="folder-git-2" class="h-4 w-4"></i>
+                    <span class="text-sm">Drag & drop repository path or paste manually</span>
+                  </div>
+                  <input id="sourcePath" type="text" value="/mnt/ufs_automotive_fw/repositories/ufs-core" class="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 font-mono text-sm text-slate-100 outline-none ring-cyan-500/60 transition focus:ring-2" />
+                </div>
+              </div>
+
+              <div class="lg:col-span-3">
+                <label class="mb-2 block text-sm font-medium text-slate-300">Step 2 · Framework Selection</label>
+                <div class="inline-flex rounded-xl border border-slate-700 bg-slate-900 p-1">
+                  <button data-framework="aspice" class="framework-btn rounded-lg px-5 py-2 text-sm font-medium transition">ASPICE Framework</button>
+                  <button data-framework="fusa" class="framework-btn rounded-lg px-5 py-2 text-sm font-medium transition">FuSa (Functional Safety)</button>
+                </div>
+              </div>
+
+              <div class="lg:col-span-3">
+                <label id="step3Label" class="mb-2 block text-sm font-medium text-slate-300">Step 3 · ASPICE Scope Selection</label>
+                <div id="subSelection" class="grid gap-3 sm:grid-cols-2"></div>
+              </div>
+            </div>
+
+            <div class="mt-6 border-t border-slate-700 pt-6">
+              <div class="flex flex-wrap items-center gap-3">
+                <button id="generateBtn" class="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-5 py-2.5 font-medium text-slate-900 transition hover:bg-cyan-400 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60">
+                  <i data-lucide="sparkles" class="h-4 w-4"></i>
+                  Generate Documentation
+                </button>
+                <span id="statusText" class="text-sm text-slate-400">Ready to parse source and generate artifacts.</span>
+              </div>
+              <div class="mt-4 h-2 overflow-hidden rounded-full bg-slate-700">
+                <div id="progressBar" class="h-full w-0 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-500 transition-all duration-500"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="grid gap-6 xl:grid-cols-2">
+            <div class="rounded-2xl border border-slate-700 bg-slate-800/70 p-5">
+              <div class="mb-3 flex items-center justify-between">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-300">Generation Console</h3>
+                <span class="rounded-md bg-slate-900 px-2 py-1 font-mono text-xs text-slate-400">live logs</span>
+              </div>
+              <div id="console" class="h-72 overflow-auto rounded-xl border border-slate-700 bg-slate-950 p-4 font-mono text-xs leading-5 text-emerald-300"></div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-700 bg-slate-800/70 p-5">
+              <div class="mb-3 flex items-center justify-between">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-300">Output Preview</h3>
+                <span class="rounded-md bg-slate-900 px-2 py-1 font-mono text-xs text-slate-400">markdown</span>
+              </div>
+              <article id="preview" class="prose prose-invert max-w-none rounded-xl border border-slate-700 bg-slate-900 p-4 text-sm"></article>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const subSelection = document.getElementById("subSelection");
+      const frameworkBtns = document.querySelectorAll(".framework-btn");
+      const step3Label = document.getElementById("step3Label");
+      const frameworkBadge = document.getElementById("frameworkBadge");
+      const generateBtn = document.getElementById("generateBtn");
+      const progressBar = document.getElementById("progressBar");
+      const statusText = document.getElementById("statusText");
+      const consoleEl = document.getElementById("console");
+      const previewEl = document.getElementById("preview");
+      const sourcePath = document.getElementById("sourcePath");
+
+      const options = {
+        aspice: [
+          "SWE.2 (Software Architectural Design)",
+          "SWE.3 (Software Detailed Design & Unit Construction)",
+          "SWE.4 Specifications (Software Unit Verification)",
+          "SWE.5 Specifications (Software Integration Verification)",
+        ],
+        fusa: [
+          "HSI (Hardware-Software Interface)",
+          "FMEA (Failure Mode and Effects Analysis)",
+        ],
+      };
+
+      const state = { framework: "aspice", selected: new Set(), running: false };
+
+      function renderFrameworkButtons() {
+        frameworkBtns.forEach((btn) => {
+          const active = btn.dataset.framework === state.framework;
+          btn.className = `framework-btn rounded-lg px-5 py-2 text-sm font-medium transition ${
+            active
+              ? "bg-cyan-500 text-slate-900 shadow-lg shadow-cyan-500/20"
+              : "text-slate-300 hover:bg-slate-800"
+          }`;
+        });
+      }
+
+      function renderSubSelection() {
+        const items = options[state.framework];
+        state.selected = new Set(items.slice(0, Math.min(2, items.length)));
+        step3Label.textContent = `Step 3 · ${state.framework === "aspice" ? "ASPICE" : "FuSa"} Scope Selection`;
+        frameworkBadge.textContent = `${state.framework === "aspice" ? "ASPICE" : "FuSa"} active`;
+        subSelection.innerHTML = items
+          .map(
+            (item) => `
+            <button data-item="${item}" class="scope-item rounded-xl border border-slate-700 bg-slate-900 p-3 text-left text-sm transition hover:border-cyan-500/60 hover:bg-slate-800">
+              <div class="flex items-start justify-between gap-2">
+                <span class="text-slate-200">${item}</span>
+                <i data-lucide="check-circle-2" class="h-4 w-4 text-cyan-400 opacity-0"></i>
+              </div>
+            </button>
+          `
+          )
+          .join("");
+        updateScopeStyles();
+        lucide.createIcons();
+        document.querySelectorAll(".scope-item").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const key = btn.dataset.item;
+            state.selected.has(key) ? state.selected.delete(key) : state.selected.add(key);
+            updateScopeStyles();
+          });
+        });
+      }
+
+      function updateScopeStyles() {
+        document.querySelectorAll(".scope-item").forEach((btn) => {
+          const active = state.selected.has(btn.dataset.item);
+          btn.classList.toggle("border-cyan-500", active);
+          btn.classList.toggle("bg-cyan-500/10", active);
+          btn.querySelector("i").classList.toggle("opacity-0", !active);
+        });
+      }
+
+      function log(message) {
+        const line = document.createElement("div");
+        line.textContent = `> ${message}`;
+        consoleEl.appendChild(line);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+      }
+
+      function renderPreview() {
+        const selected = [...state.selected].map((s) => `- ${s}`).join("\n");
+        previewEl.innerHTML = `
+<h1>AutoDoc-UFS Generated Report</h1>
+<p><strong>Source:</strong> <code>${sourcePath.value}</code></p>
+<p><strong>Framework:</strong> ${state.framework.toUpperCase()}</p>
+<h2>Selected Compliance Targets</h2>
+<pre>${selected}</pre>
+<h2>Summary</h2>
+<p>The parser completed static analysis, traceability mapping, and compliance template population for selected modules.</p>
+<h2>Artifacts</h2>
+<ul>
+<li>Requirements Traceability Matrix</li>
+<li>Architecture Linkage Mapping</li>
+<li>Verification Evidence Draft</li>
+</ul>
+`;
+      }
+
+      async function runGeneration() {
+        if (state.running) return;
+        state.running = true;
+        generateBtn.disabled = true;
+        consoleEl.innerHTML = "";
+        previewEl.innerHTML = "";
+
+        const phases = [
+          [10, "Initializing repository scan..."],
+          [25, "Parsing AST and dependency graph..."],
+          [45, "Mapping architecture to compliance controls..."],
+          [65, `Compiling ${[...state.selected][0] || "selected"} report...`],
+          [85, "Synthesizing verification evidence..."],
+          [100, "Generation complete."],
+        ];
+
+        for (const [progress, msg] of phases) {
+          progressBar.style.width = `${progress}%`;
+          statusText.textContent = msg;
+          log(msg);
+          await new Promise((resolve) => setTimeout(resolve, 800));
+        }
+
+        renderPreview();
+        state.running = false;
+        generateBtn.disabled = false;
+      }
+
+      frameworkBtns.forEach((btn) =>
+        btn.addEventListener("click", () => {
+          state.framework = btn.dataset.framework;
+          renderFrameworkButtons();
+          renderSubSelection();
+        })
+      );
+
+      generateBtn.addEventListener("click", runGeneration);
+
+      renderFrameworkButtons();
+      renderSubSelection();
+      lucide.createIcons();
+    </script>
+  </body>
+</html>
